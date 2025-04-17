@@ -16,13 +16,13 @@ const CHUNK_SIZE: usize = 1024 * 1024;
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
-    #[arg(required = true, help = "File and directory paths.")]
+    #[arg(required = true, help = "File and directory paths")]
     paths: Vec<PathBuf>,
-    #[arg(short, long, help = "Parse directories recursively.")]
+    #[arg(short, long, help = "Parse directories recursively")]
     recursive: bool,
-    #[arg(short, long, help = "Output file name.")]
+    #[arg(short, long, help = "Output file name")]
     out_file: Option<PathBuf>,
-    #[arg(short, long, help = "Verify a checksum file.")]
+    #[arg(short, long, help = "Verify a checksum file")]
     verify: bool,
 }
 
