@@ -4,6 +4,7 @@ use colored::Colorize;
 use crc32fast::Hasher;
 use std::{
     env,
+    fmt::Write,
     fs::{self, File},
     io::Read,
     path::{Path, PathBuf},
@@ -36,7 +37,7 @@ where
     let file = file.as_ref();
     let mut fp =
         File::open(file).with_context(|| format!("Failed to open file {}", file.display()))?;
-    let mut buf = [0; CHUNK_SIZE];
+    let mut buf = vec![0; CHUNK_SIZE];
     let mut hasher = Hasher::new();
 
     loop {
@@ -92,7 +93,7 @@ where
         if path.is_dir() {
             files.append(&mut get_files(&path, recursive)?);
         } else if path.is_file() {
-            files.push(path.to_path_buf());
+            files.push(path);
         }
     }
 
@@ -122,7 +123,8 @@ where
 
         println!("{} {checksum:08X}", file.display());
 
-        out_text += &format!("{} {checksum:08X}\n", file.display());
+        writeln!(out_text, "{} {checksum:08X}", file.display())
+            .context("Failed to write to string")?;
     }
 
     if let Some(path) = out_file {
@@ -158,7 +160,7 @@ where
     let mut all_ok = true;
     for mut line in lines {
         line = line.trim();
-        if line.is_empty() || line.starts_with(";") {
+        if line.is_empty() || line.starts_with(';') {
             continue;
         }
 
@@ -167,7 +169,7 @@ where
 
         match crc32(path) {
             Ok(computed_checksum) => {
-                let computed_checksum = format!("{:08X}", computed_checksum);
+                let computed_checksum = format!("{computed_checksum:08X}");
                 if computed_checksum == checksum {
                     println!("{path} {}", "OK".green());
                 } else {
@@ -190,7 +192,7 @@ where
     Ok(all_ok)
 }
 
-/// Parse command line arguments and call either verify_sfv or create_sfv depending on options provided.
+/// Parse command line arguments and call either `verify_sfv` or `create_sfv` depending on options provided.
 fn main() {
     let mut args = Args::parse();
 
