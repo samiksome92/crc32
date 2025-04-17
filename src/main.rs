@@ -206,10 +206,8 @@ fn main() {
                 exit(1);
             }
         }
-    } else {
-        if let Err(e) = create_sfv(args.paths, args.recursive, args.out_file) {
-            println!("An error occured while trying to compute the checksums...\n{e:#}");
-            exit(1);
-        }
+    } else if let Err(e) = create_sfv(args.paths, args.recursive, args.out_file) {
+        println!("An error occured while trying to compute the checksums...\n{e:#}");
+        exit(1);
     }
 }
