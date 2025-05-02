@@ -10,7 +10,7 @@ use std::{
     process::ExitCode,
 };
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Error, Result};
 use clap::Parser;
 use colored::Colorize;
 use crc32fast::Hasher;
@@ -100,6 +100,11 @@ where
             files.append(&mut get_files(&path, recursive)?);
         } else if path.is_file() {
             files.push(path);
+        } else {
+            return Err(Error::msg(format!(
+                "{} is neither a file nor a directory",
+                path.display()
+            )));
         }
     }
 
@@ -120,11 +125,12 @@ where
     let mut out_text = String::default();
     for file in files {
         let checksum = crc32(&file)?;
-        let file = fs::canonicalize(&file)
+        let cwd = env::current_dir().context("Failed to get current directory")?;
+        let cwd = fs::canonicalize(&cwd)
+            .with_context(|| format!("Failed to get canonical path for {}", cwd.display()))?;
+        let file_canonical = fs::canonicalize(&file)
             .with_context(|| format!("Failed to get canonical path for {}", file.display()))?;
-        let file = file
-            .strip_prefix(env::current_dir().context("Failed to get current directory")?)
-            .unwrap_or(&file);
+        let file = file_canonical.strip_prefix(cwd).unwrap_or(&file);
 
         println!("{} {checksum:08X}", file.display());
 
